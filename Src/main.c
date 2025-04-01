@@ -587,7 +587,22 @@ int32_t doPidCalculations(struct fastPID* pidnow, int actual, int target)
 void loadEEpromSettings()
 {
     read_flash_bin(eepromBuffer.buffer, eeprom_address, sizeof(eepromBuffer.buffer));
-
+		eepromBuffer.comp_pwm = 1;
+		eepromBuffer.use_sine_start = 0;	//以上两个配置互斥
+		eepromBuffer.auto_advance = 0;
+		eepromBuffer.advance_level = 2;
+		eepromBuffer.motor_poles = 14;
+		eepromBuffer.motor_kv = 45;
+		//eepromBuffer.startup_power = 50;
+		eepromBuffer.bi_direction = 0;
+		eepromBuffer.variable_pwm = 1;
+		eepromBuffer.pwm_frequency = 24;
+		eepromBuffer.rc_car_reverse = 0;
+		eepromBuffer.beep_volume = 5;
+		eepromBuffer.input_type = 0;
+		eepromBuffer.low_cell_volt_cutoff = 0;
+		eepromBuffer.telemetry_on_interval = 0;
+	
     if (eepromBuffer.advance_level > 3) {
         eepromBuffer.advance_level = 2;
     }
@@ -677,6 +692,9 @@ void loadEEpromSettings()
         throttle_max_at_low_rpm = throttle_max_at_low_rpm + dead_time_override;
         startup_max_duty_cycle = startup_max_duty_cycle + dead_time_override;
 #ifdef STMICRO
+        TIM1->BDTR |= dead_time_override;
+#endif
+#ifdef PUYA
         TIM1->BDTR |= dead_time_override;
 #endif
 #ifdef ARTERY
@@ -1508,6 +1526,9 @@ void zcfoundroutine()
 #endif
 #ifdef MCU_AT32
 		COM_TIMER->pr = waitTime;
+#endif
+#ifdef MCU_MD310
+		COM_TIMER->ARR = waitTime;
 #endif
     commutate();
     bemfcounter = 0;

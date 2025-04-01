@@ -60,6 +60,8 @@ static inline uint16_t get_timer_us16(void) {
     return UTILITY_TIMER->cval;
 #elif defined(WCH)
     return UTILITY_TIMER->CNT>>1;
+#elif defined(PUYA)
+    return UTILITY_TIMER->CNT>>1;
 #else
 #error unsupported MCU
 #endif
@@ -70,9 +72,20 @@ static inline uint16_t get_timer_us16(void) {
  */
 void delayMicros(uint32_t micros)
 {
-    const uint16_t cval_start = get_timer_us16();
-    while ((uint16_t)(get_timer_us16() - cval_start) < (uint16_t)micros) {
-    }
+		micros = micros - 1;	//此处代码执行需要的时长大概处理 48个周期1uS
+		if(micros <= 0){
+			return;
+		}
+		
+		uint32_t um = CPU_FREQUENCY_MHZ * 1000000 / 32 / micros;
+		LL_LPTIM_SetAutoReload(LPTIM1, um);
+	
+		LL_LPTIM_StartCounter(LPTIM1,LL_LPTIM_OPERATING_MODE_ONESHOT);
+		
+		while(LL_LPTIM_IsActiveFlag_ARRM(LPTIM) != 1){
+		}
+		
+		LL_LPTIM_ClearFLAG_ARRM(LPTIM);
 }
 
 /*
@@ -80,9 +93,7 @@ void delayMicros(uint32_t micros)
  */
 void delayMillis(uint32_t millis)
 {
-    while (millis-- > 0) {
-        delayMicros(1000UL);
-    }
+		LL_mDelay(millis);
 }
 
 uint8_t update_crc8(uint8_t crc, uint8_t crc_seed)
