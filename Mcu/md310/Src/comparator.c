@@ -56,11 +56,11 @@ void changeCompInput() {
 		**/
 		
 	if (rising){
-		  LL_EXTI_EnableRisingTrig(EXTI_LINE);
-		  LL_EXTI_DisableFallingTrig(EXTI_LINE);
-	}else{                          // falling bemf
 		  LL_EXTI_DisableRisingTrig(EXTI_LINE);
 		  LL_EXTI_EnableFallingTrig(EXTI_LINE);
+	}else{                          // falling bemf
+		  LL_EXTI_EnableRisingTrig(EXTI_LINE);
+		  LL_EXTI_DisableFallingTrig(EXTI_LINE);
 	}
 }
 
